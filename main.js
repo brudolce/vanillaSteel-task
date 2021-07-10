@@ -1,25 +1,42 @@
-console.time('Execution Time');
-const n = 132729610
-// const n = 31
+import fetch from 'node-fetch'
+import * as header from './config.js'
+import { minNumberOfSquares } from './agorithm.js'
 
 
+const calls = async () => {
+    try {
+        console.time('Processing Execution Time');
 
-const minNumberOfSquares = (n) => {
-    let squares = 0;
-    let spaceLeft = n
-    let nextSquare;
+        //GET
+        const resGet = await fetch('https://ctf.makemake.cc/task3/challenge', {
+            headers: header.get
+        })
+        const resGetBody = await resGet.json()
 
-    while (spaceLeft > 0) {
-        if (spaceLeft < 4) {
-            squares += spaceLeft
-            break;
-        }
-        nextSquare = Math.floor(Math.pow(spaceLeft, 0.5))
-        spaceLeft -= Math.pow(nextSquare, 2)
-        squares += 1
+
+        //APPLY SOLUTION
+        const { challenge, token } = resGetBody
+        let postBody = {}
+        Object.keys(challenge)
+            .forEach(e => postBody = { ...postBody, [e]: minNumberOfSquares(challenge[e]) })
+        console.log('\npost body: ', postBody)
+
+
+        console.timeEnd('Processing Execution Time');
+
+        //POST
+        const resPost = await fetch('https://ctf.makemake.cc/task3/submit', {
+            method: "POST",
+            body: JSON.stringify(postBody),
+            headers: header.post(token)
+        });
+        console.log('\nresPost', resPost)
+        // const resPostBody = await resPost.json()
+        // console.log('\npostBody\n', resPostBody)
+
+    } catch (e) {
+        console.log('error: ', e)
     }
-    return squares
 }
 
-console.log('n: ', n, '\nminNumberOfSquares: ', minNumberOfSquares(n), '\n')
-console.timeEnd('Execution Time');
+calls()
